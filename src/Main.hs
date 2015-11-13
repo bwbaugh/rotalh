@@ -26,7 +26,7 @@ runTotal :: [String] -> [Integer] -> [String] -> [String]
 runTotal _ _ [] = []
 runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
     where
-    status = unlines $ map unwords [[show count, word] | (count, word) <- zip counts' seen']
+    status = unlines $ map unwords [[padR 4 (show count), word] | (count, word) <- zip counts' seen']
     xIndexMaybe = elemIndex x seen
     seen' = case xIndexMaybe of
         Just _ -> seen
@@ -37,3 +37,8 @@ runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
 
 updateIndex :: Int -> [a] -> a -> [a]
 updateIndex k xs newx = take k xs ++ [newx] ++ drop (k + 1) xs
+
+padR :: Int -> String -> String
+padR n s
+    | length s < n  = replicate (n - length s) ' ' ++ s
+    | otherwise = s
