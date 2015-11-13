@@ -1,5 +1,4 @@
 import Data.List (elemIndex, intersperse)
-import Data.Maybe (fromJust)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
 
 main :: IO ()
@@ -28,12 +27,13 @@ runTotal _ _ [] = []
 runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
     where
     status = unlines $ map concat $ map (intersperse "\t") [[word, show count] | (word, count) <- zip seen' counts']
-    seen'
-        | x `elem` seen = seen
-        | otherwise = x : seen
-    counts'
-        | x `elem` seen = updateIndex (fromJust $ elemIndex x seen) counts (counts !! (fromJust $ elemIndex x seen) + 1)
-        | otherwise = 1 : counts
+    xIndexMaybe = elemIndex x seen
+    seen' = case xIndexMaybe of
+        Just _ -> seen
+        Nothing -> x : seen
+    counts' = case xIndexMaybe of
+        Just xIndex -> updateIndex xIndex counts (counts !! xIndex + 1)
+        Nothing -> 1 : counts
 
 updateIndex :: Int -> [a] -> a -> [a]
 updateIndex k xs newx = take k xs ++ [newx] ++ drop (k + 1) xs
