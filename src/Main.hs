@@ -26,7 +26,7 @@ runTotal :: [String] -> [Integer] -> [String] -> [String]
 runTotal _ _ [] = []
 runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
     where
-    status = unlines $ map unwords [[word, show count] | (word, count) <- zip seen' counts']
+    status = unlines $ map unwords [[show count, word] | (count, word) <- zip counts' seen']
     xIndexMaybe = elemIndex x seen
     seen' = case xIndexMaybe of
         Just _ -> seen
