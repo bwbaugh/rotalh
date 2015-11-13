@@ -1,6 +1,7 @@
 import Data.List (elemIndex, sortBy)
 import Data.Ord (comparing)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
+import Text.Printf (printf)
 
 main :: IO ()
 main = do
@@ -29,7 +30,7 @@ runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
     where
     status = unlines $ map unwords sortedValues
     sortedValues = sortBy (comparing last) countValuePairs
-    countValuePairs = [[padR 4 (show count), word] | (count, word) <- zip counts' seen']
+    countValuePairs = [[printf "%4d" count, word] | (count, word) <- zip counts' seen']
     xIndexMaybe = elemIndex x seen
     seen' = case xIndexMaybe of
         Just _ -> seen
@@ -40,8 +41,3 @@ runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
 
 updateIndex :: Int -> [a] -> a -> [a]
 updateIndex k xs newx = take k xs ++ [newx] ++ drop (k + 1) xs
-
-padR :: Int -> String -> String
-padR n s
-    | length s < n  = replicate (n - length s) ' ' ++ s
-    | otherwise = s
