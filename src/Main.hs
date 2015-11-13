@@ -1,4 +1,4 @@
-import Data.List (elemIndex, intersperse)
+import Data.List (elemIndex)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
 
 main :: IO ()
@@ -26,7 +26,7 @@ runTotal :: [String] -> [Integer] -> [String] -> [String]
 runTotal _ _ [] = []
 runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
     where
-    status = unlines $ map concat $ map (intersperse "\t") [[word, show count] | (word, count) <- zip seen' counts']
+    status = unlines $ map unwords [[word, show count] | (word, count) <- zip seen' counts']
     xIndexMaybe = elemIndex x seen
     seen' = case xIndexMaybe of
         Just _ -> seen
