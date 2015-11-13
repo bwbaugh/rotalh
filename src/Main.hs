@@ -1,4 +1,5 @@
-import Data.List (elemIndex)
+import Data.List (elemIndex, sortBy)
+import Data.Ord (comparing)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
 
 main :: IO ()
@@ -26,7 +27,9 @@ runTotal :: [String] -> [Integer] -> [String] -> [String]
 runTotal _ _ [] = []
 runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
     where
-    status = unlines $ map unwords [[padR 4 (show count), word] | (count, word) <- zip counts' seen']
+    status = unlines $ map unwords sortedValues
+    sortedValues = sortBy (comparing last) countValuePairs
+    countValuePairs = [[padR 4 (show count), word] | (count, word) <- zip counts' seen']
     xIndexMaybe = elemIndex x seen
     seen' = case xIndexMaybe of
         Just _ -> seen

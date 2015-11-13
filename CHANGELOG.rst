@@ -15,3 +15,7 @@ Added
 
 * Minimum viable product (MVP) functionality.
   Updates the screen with running counts.
+* Imitates the output format of ``sort | uniq --count``
+  by sorting output alphabetically,
+  displaying the count first,
+  and right justifying the count by padding with up to three spaces.
