@@ -2,12 +2,15 @@ import Data.List (elemIndex, sortBy)
 import Data.Ord (comparing)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
 import Text.Printf (printf)
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
+    args <- getArgs
+    let showPercent = any (`elem` args) ["-p", "--percent"]
     contents <- getContents
     let allLines = lines contents
-    loop (-1) $ runTotal [] [] allLines
+    loop (-1) $ runTotal [] [] showPercent allLines
 
 loop :: Int -> [String] -> IO ()
 loop _ [] = return ()
@@ -24,13 +27,19 @@ showStatus status = do
             clearFromCursorToLineEnd
             putStrLn line
 
-runTotal :: [String] -> [Integer] -> [String] -> [String]
-runTotal _ _ [] = []
-runTotal seen counts (x:xs) = status : (runTotal seen' counts' xs)
+runTotal :: [String] -> [Integer] -> Bool -> [String] -> [String]
+runTotal _ _ _ [] = []
+runTotal seen counts showPercent (x:xs) = status : (runTotal seen' counts' showPercent xs)
     where
     status = unlines $ map unwords sortedValues
     sortedValues = sortBy (comparing last) countValuePairs
-    countValuePairs = [[printf "%4d" count, word] | (count, word) <- zip counts' seen']
+    -- TODO(bwbaugh|2015-11-13): Pull out all formatting to another function.
+    countValuePairs
+        | showPercent = [[printf "%4d" count, percent count, word] | (count, word) <- zip counts' seen']
+        | otherwise = [[printf "%4d" count, word] | (count, word) <- zip counts' seen']
+        where
+        percent count = printf "(%.2f%%)" ((fromIntegral count :: Float) / total * 100)
+        total = fromIntegral $ sum counts'
     xIndexMaybe = elemIndex x seen
     seen' = case xIndexMaybe of
         Just _ -> seen

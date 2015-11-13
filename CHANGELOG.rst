@@ -10,6 +10,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Unreleased
 **********
 
+Added
+=====
+
+* Option to display percentage for each line.
+
 
 *******************
 v0.1.0 - 2015-11-13
