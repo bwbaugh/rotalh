@@ -1,8 +1,9 @@
 import Data.List (elemIndex, sortBy)
 import Data.Ord (comparing)
-import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
-import Text.Printf (printf)
 import System.Environment (getArgs)
+import Text.Printf (printf)
+
+import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
 
 main :: IO ()
 main = do
