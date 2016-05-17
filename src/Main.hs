@@ -9,8 +9,7 @@ main :: IO ()
 main = do
     args <- getArgs
     let showPercent = any (`elem` args) ["-p", "--percent"]
-    contents <- getContents
-    let allLines = lines contents
+    allLines <- fmap lines getContents
     loop (-1) $ runTotal [] [] showPercent allLines
 
 loop :: Int -> [String] -> IO ()
