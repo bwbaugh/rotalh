@@ -16,12 +16,12 @@ main = do
 loop :: Int -> [String] -> IO ()
 loop _ [] = return ()
 loop numPrevLines (status:xs) = do
-    cursorUpLine $ numPrevLines
+    cursorUpLine numPrevLines
     showStatus status
     loop (length $ lines status) xs
 
 showStatus :: String -> IO ()
-showStatus status = do
+showStatus status =
     mapM_ showCurrentStatus $ lines status
         where
         showCurrentStatus line = do
@@ -30,7 +30,7 @@ showStatus status = do
 
 runTotal :: [String] -> [Integer] -> Bool -> [String] -> [String]
 runTotal _ _ _ [] = []
-runTotal seen counts showPercent (x:xs) = status : (runTotal seen' counts' showPercent xs)
+runTotal seen counts showPercent (x:xs) = status : runTotal seen' counts' showPercent xs
     where
     status = unlines $ map unwords sortedValues
     sortedValues = sortBy (comparing last) countValuePairs
