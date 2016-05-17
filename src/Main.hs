@@ -1,3 +1,4 @@
+import Control.Monad
 import Data.List (elemIndex, sortBy)
 import Data.Ord (comparing)
 import System.Environment (getArgs)
@@ -20,12 +21,9 @@ loop numPrevLines (status:xs) = do
     loop (length $ lines status) xs
 
 showStatus :: String -> IO ()
-showStatus status =
-    mapM_ showCurrentStatus $ lines status
-        where
-        showCurrentStatus line = do
-            clearFromCursorToLineEnd
-            putStrLn line
+showStatus status = forM_ (lines status) $ \line -> do
+    clearFromCursorToLineEnd
+    putStrLn line
 
 runTotal :: [String] -> [Integer] -> Bool -> [String] -> [String]
 runTotal _ _ _ [] = []
