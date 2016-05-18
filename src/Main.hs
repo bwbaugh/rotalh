@@ -46,15 +46,15 @@ displayOutput numPrevLinesMVar seenMVar showPercent = do
             let status = makeStatus seen showPercent
             showStatus status
             -- XXX: Using the MVar as a lock on updating the screen.
-            putMVar numPrevLinesMVar (length (lines status))
+            putMVar numPrevLinesMVar (length status)
 
-showStatus :: String -> IO ()
-showStatus status = forM_ (lines status) $ \line -> do
+showStatus :: [String] -> IO ()
+showStatus status = forM_ status $ \line -> do
     clearFromCursorToLineEnd
     putStrLn line
 
-makeStatus :: HM.HashMap String Integer -> Bool -> String
-makeStatus seen showPercent = unlines $ map unwords sortedValues
+makeStatus :: HM.HashMap String Integer -> Bool -> [String]
+makeStatus seen showPercent = map unwords sortedValues
   where
     sortedValues = sortBy (comparing last) countValuePairs
     -- TODO(bwbaugh|2015-11-13): Pull out all formatting to another function.
