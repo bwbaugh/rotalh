@@ -1,3 +1,6 @@
+module Main where
+
+import Control.Monad
 import Data.List (elemIndex, sortBy)
 import Data.Ord (comparing)
 import System.Environment (getArgs)
@@ -9,28 +12,24 @@ main :: IO ()
 main = do
     args <- getArgs
     let showPercent = any (`elem` args) ["-p", "--percent"]
-    contents <- getContents
-    let allLines = lines contents
+    allLines <- fmap lines getContents
     loop (-1) $ runTotal [] [] showPercent allLines
 
 loop :: Int -> [String] -> IO ()
 loop _ [] = return ()
 loop numPrevLines (status:xs) = do
-    cursorUpLine $ numPrevLines
+    cursorUpLine numPrevLines
     showStatus status
     loop (length $ lines status) xs
 
 showStatus :: String -> IO ()
-showStatus status = do
-    mapM_ showCurrentStatus $ lines status
-        where
-        showCurrentStatus line = do
-            clearFromCursorToLineEnd
-            putStrLn line
+showStatus status = forM_ (lines status) $ \line -> do
+    clearFromCursorToLineEnd
+    putStrLn line
 
 runTotal :: [String] -> [Integer] -> Bool -> [String] -> [String]
 runTotal _ _ _ [] = []
-runTotal seen counts showPercent (x:xs) = status : (runTotal seen' counts' showPercent xs)
+runTotal seen counts showPercent (x:xs) = status : runTotal seen' counts' showPercent xs
     where
     status = unlines $ map unwords sortedValues
     sortedValues = sortBy (comparing last) countValuePairs
