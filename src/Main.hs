@@ -1,3 +1,5 @@
+module Main where
+
 import Control.Monad
 import Data.List (elemIndex, sortBy)
 import Data.Ord (comparing)
