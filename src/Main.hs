@@ -17,7 +17,9 @@ main = do
     allLines <- fmap lines getContents
     seenMVar <- newMVar HM.empty
     numPrevLinesMVar <- newMVar (-1)
-    workerId <- forkIO (outputWorker numPrevLinesMVar seenMVar showPercent)
+    -- XXX: Maybe there's a better way than calling this with undefined.
+    let outputFunc _ = displayOutput numPrevLinesMVar seenMVar showPercent
+    workerId <- forkIO (outputWorker outputFunc)
     forM_ allLines $ \x -> do
         seen <- takeMVar seenMVar
         putMVar seenMVar (HM.insertWith (+) x 1 seen)
@@ -25,12 +27,10 @@ main = do
     numPrevLines <- takeMVar numPrevLinesMVar
     killThread workerId
     putMVar numPrevLinesMVar numPrevLines
-    displayOutput numPrevLinesMVar seenMVar showPercent
+    outputFunc undefined
 
-outputWorker :: MVar Int -> MVar (HM.HashMap String Integer) -> Bool -> IO ()
-outputWorker numPrevLinesMVar seenMVar showPercent = forever $ do
-    displayOutput numPrevLinesMVar seenMVar showPercent
-    threadDelay 1000000
+outputWorker :: (a -> IO b) -> IO ()
+outputWorker f = forever $ f undefined >> threadDelay 1000000
 
 displayOutput :: MVar Int -> MVar (HM.HashMap String Integer) -> Bool -> IO ()
 displayOutput numPrevLinesMVar seenMVar showPercent = do
