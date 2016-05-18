@@ -16,19 +16,32 @@ main = do
     let showPercent = any (`elem` args) ["-p", "--percent"]
     allLines <- fmap lines getContents
     seenMVar <- newMVar HM.empty
-    _ <- forkIO (displayOutput (-1) seenMVar showPercent)
+    numPrevLinesMVar <- newMVar (-1)
+    workerId <- forkIO (outputWorker numPrevLinesMVar seenMVar showPercent)
     forM_ allLines $ \x -> do
         seen <- takeMVar seenMVar
         putMVar seenMVar (HM.insertWith (+) x 1 seen)
+    -- Acquire a lock for updating the screen for the final output.
+    numPrevLines <- takeMVar numPrevLinesMVar
+    killThread workerId
+    putMVar numPrevLinesMVar numPrevLines
+    displayOutput numPrevLinesMVar seenMVar showPercent
 
-displayOutput :: Int -> MVar (HM.HashMap String Integer) -> Bool -> IO ()
-displayOutput numPrevLines seenMVar showPercent = forever $ do
+outputWorker :: MVar Int -> MVar (HM.HashMap String Integer) -> Bool -> IO ()
+outputWorker numPrevLinesMVar seenMVar showPercent = forever $ do
+    displayOutput numPrevLinesMVar seenMVar showPercent
+    threadDelay 1000000
+
+displayOutput :: MVar Int -> MVar (HM.HashMap String Integer) -> Bool -> IO ()
+displayOutput numPrevLinesMVar seenMVar showPercent = do
     seen <- readMVar seenMVar
+    numPrevLines <- takeMVar numPrevLinesMVar
     cursorUpLine numPrevLines
     let status = makeStatus seen showPercent
+        numPrevLines' = length (lines status)
     showStatus status
-    threadDelay 1000000
-    displayOutput (length $ lines status) seenMVar showPercent
+    -- XXX: Using the MVar as a lock on updating the screen.
+    putMVar numPrevLinesMVar numPrevLines'
 
 showStatus :: String -> IO ()
 showStatus status = forM_ (lines status) $ \line -> do
