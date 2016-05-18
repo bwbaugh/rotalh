@@ -14,6 +14,7 @@ Added
 =====
 
 * Option to display percentage for each line.
+* Throttle output by updating once per second.
 
 
 *******************
