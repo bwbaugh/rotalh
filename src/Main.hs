@@ -44,10 +44,9 @@ displayOutput numPrevLinesMVar seenMVar showPercent = do
         then putMVar numPrevLinesMVar (-1)
         else do
             let status = makeStatus seen showPercent
-                numPrevLines' = length (lines status)
             showStatus status
             -- XXX: Using the MVar as a lock on updating the screen.
-            putMVar numPrevLinesMVar numPrevLines'
+            putMVar numPrevLinesMVar (length (lines status))
 
 showStatus :: String -> IO ()
 showStatus status = forM_ (lines status) $ \line -> do
