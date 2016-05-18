@@ -37,11 +37,17 @@ displayOutput numPrevLinesMVar seenMVar showPercent = do
     seen <- readMVar seenMVar
     numPrevLines <- takeMVar numPrevLinesMVar
     cursorUpLine numPrevLines
-    let status = makeStatus seen showPercent
-        numPrevLines' = length (lines status)
-    showStatus status
-    -- XXX: Using the MVar as a lock on updating the screen.
-    putMVar numPrevLinesMVar numPrevLines'
+    if null seen
+        -- XXX: Need to store -1 to prevent moving cursor up too far.
+        -- Without this, the cursor would be moved up to before the
+        -- program started.
+        then putMVar numPrevLinesMVar (-1)
+        else do
+            let status = makeStatus seen showPercent
+                numPrevLines' = length (lines status)
+            showStatus status
+            -- XXX: Using the MVar as a lock on updating the screen.
+            putMVar numPrevLinesMVar numPrevLines'
 
 showStatus :: String -> IO ()
 showStatus status = forM_ (lines status) $ \line -> do
