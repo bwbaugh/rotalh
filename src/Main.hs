@@ -4,21 +4,37 @@ import Control.Concurrent
 import Control.Monad
 import Data.List (sortBy)
 import Data.Ord (comparing)
-import System.Environment (getArgs)
 import Text.Printf (printf)
 
+import Options.Applicative
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUp)
 import qualified Data.HashMap.Strict as HM
 
+data Options = Options
+    { optPercent :: !Bool
+    } deriving (Show)
+
+options :: Parser Options
+options = Options
+    <$> switch
+        ( long "percent"
+        <> short 'p'
+        <> help "Show percent of total for each line." )
+
 main :: IO ()
-main = do
-    args <- getArgs
-    let showPercent = any (`elem` args) ["-p", "--percent"]
+main = execParser opts >>= run
+  where
+    opts = info (helper <*> options)
+        ( fullDesc
+        <> progDesc "Intended to be a replacement for `sort | uniq -c`." )
+
+run :: Options -> IO ()
+run opts = do
     allLines <- fmap lines getContents
     seenMVar <- newMVar HM.empty
     numPrevLinesMVar <- newMVar (-1)
     -- XXX: Maybe there's a better way than calling this with undefined.
-    let outputFunc _ = displayOutput numPrevLinesMVar seenMVar showPercent
+    let outputFunc _ = displayOutput numPrevLinesMVar seenMVar (optPercent opts)
     workerId <- forkIO (outputWorker outputFunc)
     forM_ allLines $ \x -> do
         seen <- takeMVar seenMVar
