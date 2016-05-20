@@ -7,7 +7,7 @@ import Data.Ord (comparing)
 import System.Environment (getArgs)
 import Text.Printf (printf)
 
-import System.Console.ANSI (clearFromCursorToLineEnd, cursorUpLine)
+import System.Console.ANSI (clearFromCursorToLineEnd, cursorUp)
 import qualified Data.HashMap.Strict as HM
 
 main :: IO ()
@@ -36,7 +36,7 @@ displayOutput :: MVar Int -> MVar (HM.HashMap String Integer) -> Bool -> IO ()
 displayOutput numPrevLinesMVar seenMVar showPercent = do
     seen <- readMVar seenMVar
     numPrevLines <- takeMVar numPrevLinesMVar
-    cursorUpLine numPrevLines
+    cursorUp numPrevLines
     if null seen
         -- XXX: Need to store -1 to prevent moving cursor up too far.
         -- Without this, the cursor would be moved up to before the

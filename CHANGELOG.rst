@@ -12,6 +12,18 @@ Unreleased
 
 
 *******************
+v0.2.1 - 2016-05-19
+*******************
+
+Fixed
+=====
+
+* Moving the cursor up
+  to replace the previous status update
+  now works on Unix.
+
+
+*******************
 v0.2.0 - 2016-05-18
 *******************
 
