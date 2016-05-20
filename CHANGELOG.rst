@@ -10,6 +10,13 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Unreleased
 **********
 
+Fixed
+=====
+
+* Moving the cursor up
+  to replace the previous status update
+  now works on Unix.
+
 
 *******************
 v0.2.0 - 2016-05-18
