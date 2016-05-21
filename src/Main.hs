@@ -75,11 +75,11 @@ showStatus status = forM_ status $ \line -> do
 makeStatus :: HM.HashMap String Integer -> Options -> [String]
 makeStatus seen opts = map unwords sortedValues
   where
-    sortedValues = sortBy (comparing last) countValuePairs
+    sortedValues = sortBy (comparing last) (countValuePairs opts)
     -- TODO(bwbaugh|2015-11-13): Pull out all formatting to another function.
-    countValuePairs
-        | optPercent opts = [[printf "%4d" count, percent count, word] | (word, count) <- HM.toList seen]
-        | otherwise = [[printf "%4d" count, word] | (word, count) <- HM.toList seen]
-      where
-        percent count = printf "(%.2f%%)" ((fromIntegral count :: Float) / total * 100)
-        total = fromIntegral $ sum (HM.elems seen)
+    countValuePairs Options{optPercent = True} =
+        [[printf "%4d" count, percent count, word] | (word, count) <- HM.toList seen]
+    countValuePairs _ =
+        [[printf "%4d" count, word] | (word, count) <- HM.toList seen]
+    percent count = printf "(%.2f%%)" ((fromIntegral count :: Float) / total * 100)
+    total = fromIntegral $ sum (HM.elems seen)
