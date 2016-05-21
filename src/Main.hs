@@ -3,6 +3,7 @@ module Main where
 import Control.Concurrent
 import Control.Monad
 import Data.List (sortBy)
+import Data.Maybe (catMaybes)
 import Data.Ord (comparing)
 import Text.Printf (printf)
 
@@ -75,11 +76,12 @@ showStatus status = forM_ status $ \line -> do
 makeStatus :: HM.HashMap String Integer -> Options -> [String]
 makeStatus seen opts = map unwords sortedValues
   where
-    sortedValues = sortBy (comparing last) (countValuePairs opts)
-    -- TODO(bwbaugh|2015-11-13): Pull out all formatting to another function.
-    countValuePairs Options{optPercent = True} =
-        [[printf "%4d" count, percent count, word] | (word, count) <- HM.toList seen]
-    countValuePairs _ =
-        [[printf "%4d" count, word] | (word, count) <- HM.toList seen]
+    sortedValues = sortBy (comparing last) countValuePairs
+    countValuePairs = map formatPair (HM.toList seen)
+    formatPair (word, count) = catMaybes
+        [ Just $ printf "%4d" count
+        , if optPercent opts then Just (percent count) else Nothing
+        , Just word
+        ]
     percent count = printf "(%.2f%%)" ((fromIntegral count :: Float) / total * 100)
     total = fromIntegral $ sum (HM.elems seen)
