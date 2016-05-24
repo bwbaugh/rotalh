@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Main where
 
 import Control.Concurrent
@@ -6,8 +7,11 @@ import Data.List (sortBy)
 import Data.Maybe (catMaybes)
 import Data.Ord (comparing)
 import Text.Printf (printf)
+import Data.Version (showVersion)
 
+import Development.GitRev
 import Options.Applicative
+import Paths_rotalh (version)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUp)
 import qualified Data.HashMap.Strict as HM
 
@@ -15,19 +19,31 @@ data Options = Options
     { optPercent :: !Bool
     } deriving (Show)
 
-options :: Parser Options
-options = Options
-    <$> switch
-        ( long "percent"
-        <> short 'p'
-        <> help "Show percent of total for each line." )
+options :: Parser (Maybe Options)
+options = flag' Nothing (long "version" <> help "Show version.")
+    <|> (Just <$> normal_options)
+  where
+    normal_options = Options
+        <$> switch
+            ( long "percent"
+            <> short 'p'
+            <> help "Show percent of total for each line."
+            )
 
 main :: IO ()
-main = execParser opts >>= run
+main = execParser opts >>= maybe (putStrLn versionString) run
   where
     opts = info (helper <*> options)
         ( fullDesc
         <> progDesc "Intended to be a replacement for `sort | uniq -c`." )
+    versionString = concat
+        [ "v", showVersion version
+        , " ("
+        , $(gitBranch), "@", $(gitHash)
+        , "; ", $(gitCommitDate)
+        , "; ", $(gitCommitCount), " commits in HEAD"
+        , ")"
+        ]
 
 run :: Options -> IO ()
 run opts = do

@@ -10,6 +10,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Unreleased
 **********
 
+Added
+=====
+
+* Version CLI option.
+
 Changed
 =======
 
