@@ -4,21 +4,37 @@ import Control.Concurrent
 import Control.Monad
 import Data.List (sortBy)
 import Data.Ord (comparing)
-import System.Environment (getArgs)
 import Text.Printf (printf)
 
+import Options.Applicative
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUp)
 import qualified Data.HashMap.Strict as HM
 
+data Options = Options
+    { optPercent :: !Bool
+    } deriving (Show)
+
+options :: Parser Options
+options = Options
+    <$> switch
+        ( long "percent"
+        <> short 'p'
+        <> help "Show percent of total for each line." )
+
 main :: IO ()
-main = do
-    args <- getArgs
-    let showPercent = any (`elem` args) ["-p", "--percent"]
+main = execParser opts >>= run
+  where
+    opts = info (helper <*> options)
+        ( fullDesc
+        <> progDesc "Intended to be a replacement for `sort | uniq -c`." )
+
+run :: Options -> IO ()
+run opts = do
     allLines <- fmap lines getContents
     seenMVar <- newMVar HM.empty
     numPrevLinesMVar <- newMVar (-1)
     -- XXX: Maybe there's a better way than calling this with undefined.
-    let outputFunc _ = displayOutput numPrevLinesMVar seenMVar showPercent
+    let outputFunc _ = displayOutput numPrevLinesMVar seenMVar opts
     workerId <- forkIO (outputWorker outputFunc)
     forM_ allLines $ \x -> do
         seen <- takeMVar seenMVar
@@ -32,8 +48,11 @@ main = do
 outputWorker :: (a -> IO b) -> IO ()
 outputWorker f = forever $ f undefined >> threadDelay 1000000
 
-displayOutput :: MVar Int -> MVar (HM.HashMap String Integer) -> Bool -> IO ()
-displayOutput numPrevLinesMVar seenMVar showPercent = do
+displayOutput :: MVar Int
+              -> MVar (HM.HashMap String Integer)
+              -> Options
+              -> IO ()
+displayOutput numPrevLinesMVar seenMVar opts = do
     seen <- readMVar seenMVar
     numPrevLines <- takeMVar numPrevLinesMVar
     cursorUp numPrevLines
@@ -43,7 +62,7 @@ displayOutput numPrevLinesMVar seenMVar showPercent = do
         -- program started.
         then putMVar numPrevLinesMVar (-1)
         else do
-            let status = makeStatus seen showPercent
+            let status = makeStatus seen opts
             showStatus status
             -- XXX: Using the MVar as a lock on updating the screen.
             putMVar numPrevLinesMVar (length status)
@@ -53,14 +72,14 @@ showStatus status = forM_ status $ \line -> do
     clearFromCursorToLineEnd
     putStrLn line
 
-makeStatus :: HM.HashMap String Integer -> Bool -> [String]
-makeStatus seen showPercent = map unwords sortedValues
+makeStatus :: HM.HashMap String Integer -> Options -> [String]
+makeStatus seen opts = map unwords sortedValues
   where
-    sortedValues = sortBy (comparing last) countValuePairs
+    sortedValues = sortBy (comparing last) (countValuePairs opts)
     -- TODO(bwbaugh|2015-11-13): Pull out all formatting to another function.
-    countValuePairs
-        | showPercent = [[printf "%4d" count, percent count, word] | (word, count) <- HM.toList seen]
-        | otherwise = [[printf "%4d" count, word] | (word, count) <- HM.toList seen]
-      where
-        percent count = printf "(%.2f%%)" ((fromIntegral count :: Float) / total * 100)
-        total = fromIntegral $ sum (HM.elems seen)
+    countValuePairs Options{optPercent = True} =
+        [[printf "%4d" count, percent count, word] | (word, count) <- HM.toList seen]
+    countValuePairs _ =
+        [[printf "%4d" count, word] | (word, count) <- HM.toList seen]
+    percent count = printf "(%.2f%%)" ((fromIntegral count :: Float) / total * 100)
+    total = fromIntegral $ sum (HM.elems seen)

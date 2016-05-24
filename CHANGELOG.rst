@@ -10,6 +10,12 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Unreleased
 **********
 
+Changed
+=======
+
+* Switch to using a library
+  for parsing CLI options.
+
 
 *******************
 v0.2.1 - 2016-05-19
