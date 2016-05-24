@@ -10,6 +10,12 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Unreleased
 **********
 
+Fixed
+=====
+
+* Prevent the output of malformed ASCII terminal control characters
+  during the first update.
+
 
 *******************
 v0.3.0 - 2016-05-23
