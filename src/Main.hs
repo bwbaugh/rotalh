@@ -17,10 +17,13 @@ data Options = Options
 
 options :: Parser Options
 options = Options
-    <$> switch
+    <$> ( infoOption "v0.2.1" (long "version" <> help "Show version.")
+    <*> switch
         ( long "percent"
         <> short 'p'
-        <> help "Show percent of total for each line." )
+        <> help "Show percent of total for each line."
+        )
+    )
 
 main :: IO ()
 main = execParser opts >>= run
