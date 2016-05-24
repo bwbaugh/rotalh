@@ -6,8 +6,10 @@ import Data.List (sortBy)
 import Data.Maybe (catMaybes)
 import Data.Ord (comparing)
 import Text.Printf (printf)
+import Data.Version (showVersion)
 
 import Options.Applicative
+import Paths_rotalh (version)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUp)
 import qualified Data.HashMap.Strict as HM
 
@@ -27,12 +29,12 @@ options = flag' Nothing (long "version" <> help "Show version.")
             )
 
 main :: IO ()
-main = execParser opts >>= maybe (putStrLn version) run
+main = execParser opts >>= maybe (putStrLn versionString) run
   where
     opts = info (helper <*> options)
         ( fullDesc
         <> progDesc "Intended to be a replacement for `sort | uniq -c`." )
-    version = "v0.2.1"
+    versionString = 'v' : showVersion version
 
 run :: Options -> IO ()
 run opts = do
