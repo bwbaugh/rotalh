@@ -15,22 +15,24 @@ data Options = Options
     { optPercent :: !Bool
     } deriving (Show)
 
-options :: Parser Options
-options = Options
-    <$> ( infoOption "v0.2.1" (long "version" <> help "Show version.")
-    <*> switch
-        ( long "percent"
-        <> short 'p'
-        <> help "Show percent of total for each line."
-        )
-    )
+options :: Parser (Maybe Options)
+options = flag' Nothing (long "version" <> help "Show version.")
+    <|> (Just <$> normal_options)
+  where
+    normal_options = Options
+        <$> switch
+            ( long "percent"
+            <> short 'p'
+            <> help "Show percent of total for each line."
+            )
 
 main :: IO ()
-main = execParser opts >>= run
+main = execParser opts >>= maybe (putStrLn version) run
   where
     opts = info (helper <*> options)
         ( fullDesc
         <> progDesc "Intended to be a replacement for `sort | uniq -c`." )
+    version = "v0.2.1"
 
 run :: Options -> IO ()
 run opts = do
