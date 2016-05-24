@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Main where
 
 import Control.Concurrent
@@ -8,6 +9,7 @@ import Data.Ord (comparing)
 import Text.Printf (printf)
 import Data.Version (showVersion)
 
+import Development.GitRev
 import Options.Applicative
 import Paths_rotalh (version)
 import System.Console.ANSI (clearFromCursorToLineEnd, cursorUp)
@@ -34,7 +36,14 @@ main = execParser opts >>= maybe (putStrLn versionString) run
     opts = info (helper <*> options)
         ( fullDesc
         <> progDesc "Intended to be a replacement for `sort | uniq -c`." )
-    versionString = 'v' : showVersion version
+    versionString = concat
+        [ "v", showVersion version
+        , " ("
+        , $(gitBranch), "@", $(gitHash)
+        , "; ", $(gitCommitDate)
+        , "; ", $(gitCommitCount), " commits in HEAD"
+        , ")"
+        ]
 
 run :: Options -> IO ()
 run opts = do

@@ -19,5 +19,6 @@ executable rotalh
   ghc-options:         -Wall
   build-depends:       base >=4.8 && <4.9
                      , ansi-terminal >= 0.6.2.3
+                     , gitrev
                      , optparse-applicative
                      , unordered-containers
