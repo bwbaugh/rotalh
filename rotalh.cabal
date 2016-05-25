@@ -1,5 +1,5 @@
 name:                rotalh
-version:             0.3.0
+version:             0.3.1
 synopsis:            Get a running count of occurrences from a stream. Intended to replace `sort | uniq -c` when the input is a stream.
 description:         Please see README.rst
 homepage:            https://github.com/bwbaugh/rotalh
