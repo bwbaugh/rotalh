@@ -49,7 +49,7 @@ run :: Options -> IO ()
 run opts = do
     allLines <- fmap lines getContents
     seenMVar <- newMVar HM.empty
-    numPrevLinesMVar <- newMVar (-1)
+    numPrevLinesMVar <- newMVar 0
     -- XXX: Maybe there's a better way than calling this with undefined.
     let outputFunc _ = displayOutput numPrevLinesMVar seenMVar opts
     workerId <- forkIO (outputWorker outputFunc)
@@ -72,17 +72,11 @@ displayOutput :: MVar Int
 displayOutput numPrevLinesMVar seenMVar opts = do
     seen <- readMVar seenMVar
     numPrevLines <- takeMVar numPrevLinesMVar
-    cursorUp numPrevLines
-    if null seen
-        -- XXX: Need to store -1 to prevent moving cursor up too far.
-        -- Without this, the cursor would be moved up to before the
-        -- program started.
-        then putMVar numPrevLinesMVar (-1)
-        else do
-            let status = makeStatus seen opts
-            showStatus status
-            -- XXX: Using the MVar as a lock on updating the screen.
-            putMVar numPrevLinesMVar (length status)
+    when (numPrevLines > 0) $ cursorUp numPrevLines
+    let status = makeStatus seen opts
+    showStatus status
+    -- XXX: Using the MVar as a lock on updating the screen.
+    putMVar numPrevLinesMVar (length status)
 
 showStatus :: [String] -> IO ()
 showStatus status = forM_ status $ \line -> do
