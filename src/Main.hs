@@ -49,7 +49,7 @@ run :: Options -> IO ()
 run opts = do
     allLines <- fmap lines getContents
     seenMVar <- newMVar HM.empty
-    numPrevLinesMVar <- newMVar Nothing
+    numPrevLinesMVar <- newMVar 0
     -- XXX: Maybe there's a better way than calling this with undefined.
     let outputFunc _ = displayOutput numPrevLinesMVar seenMVar opts
     workerId <- forkIO (outputWorker outputFunc)
@@ -65,19 +65,18 @@ run opts = do
 outputWorker :: (a -> IO b) -> IO ()
 outputWorker f = forever $ f undefined >> threadDelay 1000000
 
-displayOutput :: MVar (Maybe Int)
+displayOutput :: MVar Int
               -> MVar (HM.HashMap String Integer)
               -> Options
               -> IO ()
 displayOutput numPrevLinesMVar seenMVar opts = do
     seen <- readMVar seenMVar
-    unless (null seen) $ do
-        numPrevLines <- takeMVar numPrevLinesMVar
-        maybe (return ()) cursorUp numPrevLines
-        let status = makeStatus seen opts
-        showStatus status
-        -- XXX: Using the MVar as a lock on updating the screen.
-        putMVar numPrevLinesMVar (Just $ length status)
+    numPrevLines <- takeMVar numPrevLinesMVar
+    when (numPrevLines > 0) $ cursorUp numPrevLines
+    let status = makeStatus seen opts
+    showStatus status
+    -- XXX: Using the MVar as a lock on updating the screen.
+    putMVar numPrevLinesMVar (length status)
 
 showStatus :: [String] -> IO ()
 showStatus status = forM_ status $ \line -> do
