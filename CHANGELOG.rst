@@ -10,6 +10,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Unreleased
 **********
 
+Added
+=====
+
+* Output interval option.
+
 
 *******************
 v0.3.1 - 2016-05-24

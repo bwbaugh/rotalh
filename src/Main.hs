@@ -16,7 +16,8 @@ import System.Console.ANSI (clearFromCursorToLineEnd, cursorUp)
 import qualified Data.HashMap.Strict as HM
 
 data Options = Options
-    { optPercent :: !Bool
+    { optInterval :: !Int  -- ^ In microseconds.
+    , optPercent :: !Bool
     } deriving (Show)
 
 options :: Parser (Maybe Options)
@@ -24,11 +25,24 @@ options = flag' Nothing (long "version" <> help "Show version.")
     <|> (Just <$> normal_options)
   where
     normal_options = Options
-        <$> switch
+        <$> fmap (round . (* oneSecond)) (option auto
+                ( long "interval"
+                <> short 'i'
+                <> metavar "SEC"
+                <> value 1
+                <> help ( unwords
+                    [ "Wait SEC seconds between updates."
+                    , "The default is to update every second."
+                    , "Note that this can be a decimal such as 0.1."
+                    ] )
+                )
+            )
+        <*> switch
             ( long "percent"
             <> short 'p'
             <> help "Show percent of total for each line."
             )
+    oneSecond = 1000000 :: Double
 
 main :: IO ()
 main = execParser opts >>= maybe (putStrLn versionString) run
@@ -52,7 +66,7 @@ run opts = do
     numPrevLinesMVar <- newMVar 0
     -- XXX: Maybe there's a better way than calling this with undefined.
     let outputFunc _ = displayOutput numPrevLinesMVar seenMVar opts
-    workerId <- forkIO (outputWorker outputFunc)
+    workerId <- forkIO (outputWorker outputFunc (optInterval opts))
     forM_ allLines $ \x -> do
         seen <- takeMVar seenMVar
         putMVar seenMVar (HM.insertWith (+) x 1 seen)
@@ -62,8 +76,8 @@ run opts = do
     putMVar numPrevLinesMVar numPrevLines
     outputFunc undefined
 
-outputWorker :: (a -> IO b) -> IO ()
-outputWorker f = forever $ f undefined >> threadDelay 1000000
+outputWorker :: (a -> IO b) -> Int -> IO ()
+outputWorker f delay = forever $ f undefined >> threadDelay delay
 
 displayOutput :: MVar Int
               -> MVar (HM.HashMap String Integer)
